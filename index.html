@@ -5,6 +5,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <script type="text/javascript" src="Javathcript.js"></script>
+    <!-- <script type="text/lisp" src="lisp/prelude.lsp"></script> Will use resource once professor provides cross origin request fix.-->
   </head>
 
   <div class="container">
@@ -23,6 +24,16 @@
     (def message alert)
     (def confirm (method window "confirm"))
     (def console (js "console"))
+
+
+    (defun heuristic (x y)
+      ;use manhattan distance
+      (setq val (- x y))
+      (if (< val 0)
+        (return-from heuristic (* val -1))
+      )
+      (return-from heuristic val)
+    )
 
     (alert "hello")
     </script>
