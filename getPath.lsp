@@ -54,13 +54,6 @@
 )
 
 (defun addNearbyToOpen (x y)
-    (if (isInList (list x (+ y 1)))
-        (progn
-            (format t "[~d, ~d] added to openList." x (+ y 1))
-            (terpri)
-            (setq openList (append openList (list (list x (+ y 1)))))
-        )
-    )
     (if (isInList (list x (- y 1)))
         (progn
             (format t "[~d, ~d] added to openList." x (- y 1))
@@ -68,18 +61,25 @@
             (setq openList (append openList (list (list x (- y 1)))))
         )
     )
-        (if (isInList (list (+ x 1) y))
-        (progn
-            (format t "[~d, ~d] added to openList." (+ x 1) y)
-            (terpri)
-            (setq openList (append openList (list (list (+ x 1) y))))
-        )
-    )
     (if (isInList (list (- x 1) y))
         (progn
             (format t "[~d, ~d] added to openList." (- x 1) y)
             (terpri)
             (setq openList (append openList (list (list (- x 1) y))))
+        )
+    )
+    (if (isInList (list x (+ y 1)))
+        (progn
+            (format t "[~d, ~d] added to openList." x (+ y 1))
+            (terpri)
+            (setq openList (append openList (list (list x (+ y 1)))))
+        )
+    )
+    (if (isInList (list (+ x 1) y))
+        (progn
+            (format t "[~d, ~d] added to openList." (+ x 1) y)
+            (terpri)
+            (setq openList (append openList (list (list (+ x 1) y))))
         )
     )
 )
