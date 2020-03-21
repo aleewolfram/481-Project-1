@@ -25,16 +25,6 @@
     (def confirm (method window "confirm"))
     (def console (js "console"))
 
-
-    (defun heuristic (x y)
-      ;use manhattan distance
-      (setq val (- x y))
-      (if (< val 0)
-        (return-from heuristic (* val -1))
-      )
-      (return-from heuristic val)
-    )
-
     (alert "hello")
     </script>
 
