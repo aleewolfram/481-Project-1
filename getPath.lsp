@@ -29,6 +29,7 @@
 (setq openList (list))
 (setq openListValues (list))
 (setq closedList (list))
+(setq path (list (list 0 3)))
 
 (defun isInList(val)
     (loop for x in redPathSpots
@@ -52,52 +53,73 @@
       (return-from heuristic (+ val1 val2))
 )
 
-(defun checkVals (x y)
+(defun addNearbyToOpen (x y)
     (if (isInList (list x (+ y 1)))
         (progn
-            (format t "[~d, ~d] is in list. Distance = " x (+ y 1))
-            (setq distance (heuristic x y x (+ y 1)))
-            (write distance)
+            (format t "[~d, ~d] added to openList." x (+ y 1))
             (terpri)
             (setq openList (append openList (list (list x (+ y 1)))))
-            (setq openListValues (append openListValues (list distance)))
         )
     )
     (if (isInList (list x (- y 1)))
         (progn
-            (format t "[~d, ~d] is in list. Distance = " x (- y 1))
-            (setq distance (heuristic x y x (- y 1)))
-            (write distance)
+            (format t "[~d, ~d] added to openList." x (- y 1))
             (terpri)
             (setq openList (append openList (list (list x (- y 1)))))
-            (setq openListValues (append openListValues (list distance)))
         )
     )
         (if (isInList (list (+ x 1) y))
         (progn
-            (format t "[~d, ~d] is in list. Distance = " (+ x 1) y)
-            (setq distance (heuristic x y (+ x 1) y))
-            (write distance)
+            (format t "[~d, ~d] added to openList." (+ x 1) y)
             (terpri)
             (setq openList (append openList (list (list (+ x 1) y))))
-            (setq openListValues (append openListValues (list distance)))
         )
     )
     (if (isInList (list (- x 1) y))
         (progn
-            (format t "[~d, ~d] is in list. Distance = " (- x 1) y)
-            (setq distance (heuristic x y (- x 1) y))
-            (write distance)
+            (format t "[~d, ~d] added to openList." (- x 1) y)
             (terpri)
             (setq openList (append openList (list (list (- x 1) y))))
-            (setq openListValues (append openListValues (list distance)))
         )
     )
 )
 
-(checkVals 0 3)
-(setq redPathSpots (remove redPathSpots (list 0 3)))
+(defun whereToGo(x y)
+    ;find distance to each in open
+    (setq openListValues (list))
+    (loop for p in openList
+    do(
+            setq openListValues(append openListValues (list (heuristic x y (nth 0 p) (nth 1 p))))
+      )
+    )
 
-(write openList)
-(terpri)
-(write openListValues)
+    (write openList)
+    (terpri)
+    (write openListValues)
+    (terpri)
+    ;return point with smallest distance
+    (setq min (apply #'min openListValues))
+    (format t "Minumum distance is ~d at point: " min)
+    (setq index (position min openListValues))
+    (write (nth index openList))
+    (return-from whereToGo (nth index openList))
+)
+
+(setq point (list 0 3))
+
+(loop
+    (if (equal point (list 35 27))
+    (return)
+    )
+
+    (addNearbyToOpen (nth 0 point) (nth 1 point))
+    (setq redPathSpots (remove point redPathSpots :test #'equal))
+    (setq point (whereToGo (nth 0 point) (nth 1 point)))
+    (setq openList (remove point openList :test #'equal))
+    (setq path (append path (list point)))
+    (terpri)
+    (terpri)
+
+)
+
+(write path)
