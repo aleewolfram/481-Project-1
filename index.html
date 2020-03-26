@@ -4,35 +4,437 @@
   <head>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-    <script type="text/javascript" src="Javathcript.js"></script>
-    <!-- <script type="text/lisp" src="lisp/prelude.lsp"></script> Will use resource once professor provides cross origin request fix.-->
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    <script src="p5.js"></script>
+    <script type="text/javascript" src="Jathp.js"></script>
+
+
   </head>
 
   <div class="container">
     <div class="page-header">
-      <h1 class="text-center">481 Project 1</h1>
+      <h1 class="text-center">Project 1</h1>
     </div>
+      <div id="instruction" class="row justify-content-md-center">
+        Please wait to animate...
+      </div>
+      <div class="row justify-content-md-center">
+        <button id="animateBtn" type="button" class="btn btn-danger btn-sm">Begin Animation</button>
+      <div style="display: none" id=path></div>
+    </div>
+    <br><br>
 
     <img src="background2.jpg" class="center">
 
-    <script type="text/lisp">
-    (def document (js "document"))
-    (def body (js "document.body"))
-    (def window (js "window"))
-    (def getElement (method document "getElementById"))
-    (def alert (method window "alert"))
-    (def message alert)
-    (def confirm (method window "confirm"))
-    (def console (js "console"))
-
-    (alert "hello")
-    </script>
-
 </div>
+
+
 </body>
 
-  <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+<script type="text/lisp"> ;File: prelude.lsp
+; This file contains aliases and common definitions.
+; It also imports the javascript Math functions.
+
+(def + plus)
+(def define def)
+(def #t 't)
+(def #f Nil)
+(def nil Nil)
+(def - minus)
+(def / divide)
+(def % rem)
+(def * times)
+(def = equal)
+(def eq? equal)
+(def head car)
+(def first car)
+(def tail cdr)
+(def rest cdr)
+(def eq equal)
+(defun null (x) (equal x Nil))
+(defun zerop (x) (equal x 0))
+(defun plusp (x) (> x 0))
+(defun minusp (x) (< x 0))
+(defun evenp (x) (equal (rem x 2) 0))
+(defun oddp (x) (/= (rem x 2) 1))
+(def document (js "document"))
+(def body (js "document.body"))
+(def window (js "window"))
+(def getElement (method document "getElementById"))
+(def alert (method window "alert"))
+(def message alert)
+(def confirm (method window "confirm"))
+(def console (js "console"))
+
+;; CS: print fcn for Jathp (to console)
+;; Must create a print-string for the value.
+;; [CS: Crash sensitivity to dbl-quoted open, "("; needs leading space.]
+(defun stgr (rx)
+  (cond
+   ((numberp rx) (concat "" rx))
+   ((null rx) "nil")
+   ((stringp rx) rx)
+   ((atom rx) (concat "" rx))
+   ((functionp rx) (fcn-guts rx))
+;   ((functionp rx) "[function]")
+   ((consp rx)
+    (let* ((open (substring " (" 1 2)) ;; use space before '(': Crash sensitive.
+           (rxlen (length rx))
+           (retv (concat open (stgr (car rx))))) ;; Recur on lkid/car.
+      (setq rx (cdr rx))
+      (while rx
+        (setq retv (concat retv " " (stgr (car rx)))) ;; Recur on lkid/car.
+        (setq rx (cdr rx)))
+      (concat retv ")")))
+   (t "[Unknown object]")))
+
+(defun logr (rx) ;; Shorter way to 'console.log in JS'.
+  (let ((log (method console "log")))
+    (log (stgr rx)))) ;; Nicer to strigify the lisp expr first.
+;; tests
+
+;; CS: pprint the Javathcript prelude fragment.
+(defun member (E L) ;; CS: orig name was "list-member", non-std.
+(cond
+ ((null L) Nil) ;; Not found in list L.
+ ((equal E (first L)) E) ;; Found E, return L's remainder CS:. Orig retval = 't.
+ ('t (member E (rest L)))))  ;; Not in head, check tail.
+
+(defun map (F L) ;;convert L=(e1 e2 ... eN) to ((F e1) (F e2) ... (F eN))
+(if (null L)
+    Nil
+  (cons (F (head L))
+        (map F (tail L)))))
+
+
+; CADDRs
+
+(defun caar (x) (car (car x)))
+(defun cadr (x) (car (cdr x)))
+(defun cdar (x) (cdr (car x)))
+(defun cddr (x) (cdr (cdr x)))
+(defun caaar (x) (car (car (car x))))
+(defun caadr (x) (car (car (cdr x))))
+(defun cadar (x) (car (cdr (car x))))
+(defun caddr (x) (car (cdr (cdr x))))
+(defun cdaar (x) (cdr (car (car x))))
+(defun cdadr (x) (cdr (car (cdr x))))
+(defun cddar (x) (cdr (cdr (car x))))
+(defun cdddr (x) (cdr (cdr (cdr x))))
+(defun caaaar (x) (car (car (car (car x)))))
+(defun caaadr (x) (car (car (car (cdr x)))))
+(defun caadar (x) (car (car (cdr (car x)))))
+(defun caaddr (x) (car (car (cdr (cdr x)))))
+(defun cadaar (x) (car (cdr (car (car x)))))
+(defun cadadr (x) (car (cdr (car (cdr x)))))
+(defun caddar (x) (car (cdr (cdr (car x)))))
+(defun cadddr (x) (car (cdr (cdr (cdr x)))))
+(defun cdaaar (x) (cdr (car (car (car x)))))
+(defun cdaadr (x) (cdr (car (car (cdr x)))))
+(defun cdadar (x) (cdr (car (cdr (car x)))))
+(defun cdaddr (x) (cdr (car (cdr (cdr x)))))
+(defun cddaar (x) (cdr (cdr (car (car x)))))
+(defun cddadr (x) (cdr (cdr (car (cdr x)))))
+(defun cdddar (x) (cdr (cdr (cdr (car x)))))
+(defun cddddr (x) (cdr (cdr (cdr (cdr x)))))
+
+; To be more like emacs, you might want to uncomment these two lines
+; (def setp set)
+; (def set def)
+
+; Import PI and the javascript math functions.
+;; CS: pprint the Javathcript prelude fragment.
+
+(let* ((math (js "Math"))
+     (import-math
+      (lambda (funcname)
+        (def-dyn funcname (method math funcname)))))
+(map import-math
+     '(sin cos tan asin acos atan atan2
+       abs floor ceil round trunc
+       max min
+       pow exp sqrt log log2 log10
+       hypot
+       random)))
+
+;; Jathp extras via defines; put here to be in correct scope.
+(def expt pow)
+(def != /=)
+
+</script>
+
+
+<script type="text/lisp">
+
+(defun append (l val)
+(cond
+((null l) val)
+('t (cons (car l)
+(append (cdr l) val)))))
+
+
+(defun member (E L)
+(cond
+((null L) Nil)
+((equal E (first L)) L) ;Return modified.
+('t (member E (rest L)))))
+
+(defun reverse (rlist)
+  ;;"Return a list with the given elements in reverse order, or nil."
+  (if (consp rlist) ;; Else nil.
+      (let ((retv nil))
+        (while rlist
+          (setq retv (cons (car rlist) retv))
+          (setq rlist (cdr rlist)))
+        retv)))
+
+(defun remove (val l)
+    (let* ((known (member val l)))
+      (cond
+      (known
+      (let ((pre-list (cdr (member val (reverse l)))))
+      (append (reverse pre-list) (cdr known))))
+      ('t l))))
+
+(defun minimum (list)
+       (cond ((null list)
+              nil)
+             ((null (rest list))
+              (first list))
+             ((< (first list) (second list))
+              (minimum (cons (first list)
+                             (rest (rest list)))))
+             (t
+              (minimum (rest list)))))
+
+(defun position-in-list (letter list)
+      (cond
+        ((null list)            nil)
+          ((eq (car list) letter) 0)
+          (t
+            (+ 1 (position-in-list letter (cdr list))))))
+
+ (defun len (list)
+      (if list
+        (+ 1 (len (cdr list)))
+        0))
+
+(defun eliminateDuplicates (L)
+      (cond ((null L) L)
+          ((member (car L) (cdr L))
+             (eliminateDuplicates (cdr L)))
+                (t (cons (car L) (eliminateDuplicates (cdr L))))))
+
+(defun get-min (m l)
+  (cond ((null (car l)) m)
+    ((< (car l) m) (get-min (car l) (cdr l)))
+      (t (get-min m  (cdr l))))
+)
+
+(setq redPathSpots (list (list 0 3) (list 0 4) (list 0 5) (list 0 10) (list 0 11) (list 0 12) (list 0 13) (list 0 14) (list 1 1) (list 1 2) (list 1 3) (list 1 5) (list 1 6) (list 1 7) (list 1 8) (list 1 9) (list 1 10) (list 1
+14) (list 1 15) (list 1 16) (list 1 17) (list 1 21) (list 1 22) (list 1 23) (list 1 24) (list 1 25) (list 2 1) (list 2 3) (list 2 5) (list 2 7) (list 2 17) (list 2 18) (list 2 19) (list 2
+20) (list 2 21) (list 2 23) (list 2 25) (list 2 26) (list 2 27) (list 3 1) (list 3 2) (list 3 3) (list 3 5) (list 3 6) (list 3 7) (list 3 21) (list 3 22) (list 3 23) (list 3 27) (list 3 28)
+(list 4 2) (list 4 15) (list 4 16) (list 4 17) (list 4 18) (list 4 22) (list 4 28) (list 5 2) (list 5 3) (list 5 4) (list 5 5) (list 5 13) (list 5 14) (list 5 15) (list 5 18) (list 5 19) (list 5
+20) (list 5 21) (list 5 22) (list 5 25) (list 5 26) (list 5 27) (list 5 28) (list 6 5) (list 6 6) (list 6 7) (list 6 13) (list 6 15) (list 6 25) (list 6 27) (list 7 7) (list 7 8) (list 7 9)
+(list 7 13) (list 7 14) (list 7 15) (list 7 25) (list 7 26) (list 7 27) (list 8 9) (list 8 13) (list 8 21) (list 8 22) (list 8 23) (list 8 26) (list 9 1) (list 9 2) (list 9 3) (list 9 9) (list 9
+10) (list 9 11) (list 9 13) (list 9 21) (list 9 23) (list 9 24) (list 9 25) (list 9 26)
+(list 10 1) (list 10 3) (list 10 9) (list 10 11) (list 10 13) (list 10 21) (list 11 1) (list 11 2) (list 11 3) (list 11 9) (list 11 10) (list 11 11) (list 11 12) (list 11 13)
+(list 11 21) (list 11 22) (list 12 1) (list 12 9) (list 12 11) (list 12 22) (list 13 1) (list 13 5) (list 13 6) (list 13 7) (list 13 8) (list 13 9) (list 13 11) (list 13 13) (list 13
+14) (list 13 15) (list 13 21) (list 13 22) (list 13 23) (list 14 1) (list 14 5) (list 14 11) (list 14 12) (list 14 13) (list 14 15) (list 14 16) (list 14 17) (list 14 21)
+(list 14 23) (list 14 24) (list 14 25) (list 14 26) (list 14 27) (list 15 1) (list 15 5) (list 15 6) (list 15 13) (list 15 14) (list 15 15) (list 15 17) (list 15 19) (list 15
+20) (list 15 21) (list 15 22) (list 15 23) (list 15 27) (list 16 1) (list 16 6) (list 16 17) (list 16 19) (list 16 27) (list 17 1) (list 17 5) (list 17 6) (list 17 7) (list 17
+13) (list 17 14) (list 17 15) (list 17 17) (list 17 19) (list 17 20) (list 17 21) (list 17 22) (list 17 25) (list 17 26) (list 17 27) (list 18 1) (list 18 2) (list 18 5)
+(list 18 7) (list 18 13) (list 18 15) (list 18 16) (list 18 17) (list 18 22) (list 18 25) (list 18 27) (list 19 13) (list 19 14) (list 19 15) (list 19 2) (list 19 5) (list 19
+6) (list 19 7) (list 19 20) (list 19 21) (list 19 22) (list 19 25) (list 19 26) (list 19 27)
+(list 20 2) (list 20 7) (list 20 9) (list 20 10) (list 20 11) (list 20 14) (list 20 20) (list 20 26) (list 21 2) (list 21 6) (list 21 7) (list 21 9) (list 21 11) (list 21 12)
+(list 21 13) (list 21 14) (list 21 20) (list 21 26) (list 22 2) (list 22 3) (list 22 5) (list 22 6) (list 22 9) (list 22 10) (list 22 11) (list 22 17) (list 22 18) (list 22 19)
+(list 22 20) (list 22 26) (list 22 27) (list 23 3) (list 23 5) (list 23 17) (list 23 27) (list 24 3) (list 24 5) (list 24 17) (list 24 23) (list 24 24) (list 24 25) (list 24
+27) (list 25 1) (list 25 2) (list 25 3) (list 25 5) (list 25 13) (list 25 14) (list 25 15) (list 25 16) (list 25 17) (list 25 18) (list 25 19) (list 25 20) (list 25 21)
+(list 25 22) (list 25 23) (list 25 25) (list 25 26) (list 25 27) (list 26 1) (list 26 3) (list 26 5) (list 26 6) (list 26 7) (list 26 8) (list 26 13) (list 26 17) (list 26 19)
+(list 27 1) (list 27 2) (list 27 3) (list 27 8) (list 27 11) (list 27 12) (list 27 13) (list 27 17) (list 27 18) (list 27 19) (list 27 20) (list 27 21) (list 27 22) (list 27
+23) (list 27 24) (list 27 25) (list 28 1) (list 28 8) (list 28 11) (list 28 25) (list 29 1) (list 29 5) (list 29 6) (list 29 7) (list 29 8) (list 29 11) (list 29 13) (list 29
+14) (list 29 15) (list 29 21) (list 29 22) (list 29 23) (list 29 24) (list 29 25)
+(list 30 1) (list 30 5) (list 30 7) (list 30 11) (list 30 12) (list 30 13) (list 30 15) (list 30 16) (list 30 17) (list 30 18) (list 30 19) (list 30 20) (list 30 21) (list 30
+23) (list 31 1) (list 31 2) (list 31 5) (list 31 6) (list 31 7) (list 31 13) (list 31 14) (list 31 15) (list 31 21) (list 31 22) (list 31 23) (list 31 24) (list 31 25)
+(list 31 26) (list 31 27) (list 32 2) (list 32 5) (list 32 7) (list 32 14) (list 32 27) (list 33 2) (list 33 3) (list 33 4) (list 33 5) (list 33 7) (list 33 14) (list 33 25)
+(list 33 26) (list 33 27) (list 34 7) (list 34 8) (list 34 9) (list 34 10) (list 34 12) (list 34 13) (list 34 14) (list 34 25) (list 34 27) (list 35 10) (list 35 11) (list 35
+12) (list 35 25) (list 35 26) (list 35 27)))
+(setq openList (list))
+(setq openListValues (list))
+(setq closedList (list))
+(setq path (list (list 0 3)))
+
+(defun isInList (el l)
+  (cond
+   ((null l) nil)
+   ((equal el (car l)) t)
+   ((consp (car l)) (or (isInList el (car l))
+                        (isInList el (cdr l))))
+   (t (isInList el (cdr l)))))
+
+(defun heuristic (x1 y1 x2 y2)
+      ;use manhattan distance
+      (setq val1 (- x1 x2))
+      (setq val2 (- y1 y2))
+      (if (< val1 0)
+        (setq val1 (* val1 -1))
+      )
+      (if (< val2 0)
+        (setq val2 (* val2 -1))
+      )
+      (return-from heuristic (+ val1 val2))
+)
+
+(defun addNearbyToOpen (x y)
+    (if (isInList (list x (- y 1)) redPathSpots)
+            (setq openList (append openList (list (list x (- y 1)))))
+    )
+    (if (isInList (list (- x 1) y) redPathSpots)
+            (setq openList (append openList (list (list (- x 1) y))))
+    )
+    (if (isInList (list x (+ y 1)) redPathSpots)
+            (setq openList (append openList (list (list x (+ y 1)))))
+    )
+    (if (isInList (list (+ x 1) y) redPathSpots)
+            (setq openList (append openList (list (list (+ x 1) y))))
+    )
+)
+
+(defun whereToGo(x y)
+    ;find distance to each in open
+    (setq openListValues (list))
+    (loop for p in openList
+    do(
+            setq openListValues(append openListValues (list (heuristic x y (nth 0 p) (nth 1 p))))
+      )
+    )
+
+    ;return point with smallest distance
+    (setq min (minimum openListValues))
+    (setq index (position-in-list min openListValues))
+    (return-from whereToGo (nth index openList))
+)
+
+(setq point (list 0 3))
+(setq n 0)
+
+(while (= n 0)
+
+  (setq openList (eliminateDuplicates openList))
+  (setq openList (remove point openList))
+  (setq redPathSpots (remove point redPathSpots))
+
+  ;adding nearby points to openList
+  (setq x (nth 0 point))
+  (setq y (nth 1 point))
+  ;(logr "x is:")
+  ;(logr x)
+  ;(logr "y is:")
+  ;(logr y)
+  (if (isInList (list x (- y 1)) redPathSpots)
+          (setq openList (append openList (list (list x (- y 1)))))
+  )
+  (if (isInList (list (- x 1) y) redPathSpots)
+          (setq openList (append openList (list (list (- x 1) y))))
+  )
+  (if (isInList (list x (+ y 1)) redPathSpots)
+          (setq openList (append openList (list (list x (+ y 1)))))
+  )
+  (if (isInList (list (+ x 1) y) redPathSpots)
+          (setq openList (append openList (list (list (+ x 1) y))))
+  )
+
+
+  ;find distance to each in open
+  (setq openListValues (list))
+  (setq i 0)
+  (setq size (len openList))
+  (while (< i size)
+    (setq x2 (nth 0 (nth i openList)))
+    (setq y2 (nth 1 (nth i openList)))
+    ;(logr "x2 is:")
+    ;(logr x2)
+    ;(logr "y2 is:")
+    ;(logr y2)
+
+    ;find heuristic
+    (setq val1 (- x x2))
+    (setq val2 (- y y2))
+    (if (< val1 0)
+      (setq val1 (* val1 -1))
+    )
+    (if (< val2 0)
+      (setq val2 (* val2 -1))
+    )
+    (setq heuristic (+ val1 val2))
+    ;(logr "heuristic is:")
+    ;(logr heuristic)
+
+
+    (setq openListValues(append openListValues (list heuristic)))
+    (setq i (+ i 1))
+  )
+
+  ;return point with smallest distance
+  ;(setq min (minimum openListValues))
+  ;(logr "openList:")
+  ;(logr openList)
+  ;(logr "openListValues:")
+  ;(logr openListValues)
+  (setq min (get-min 100 openListValues))
+  ;(logr "min is:")
+  ;(logr min)
+  (setq index (position-in-list min openListValues))
+  ;(logr "index is:")
+  ;(logr index)
+  (setq point (nth index openList))
+
+
+  ;(setq point (whereToGo (nth 0 point) (nth 1 point)))
+  ;(logr "point to go to is:")
+  ;(logr point)
+
+  (setq openList (remove point openList))
+  (setq path (append path (list point)))
+
+  ;(test (nth 0 point) (nth 1 point))
+  ;(logr openList)
+  ;(setq redPathSpots (remove point redPathSpots))
+  ;(setq point (whereToGo (nth 0 point) (nth 1 point)))
+
+  (if (equal point (list 35 27))
+      (setq n 1)
+  )
+
+)
+
+(logr path)
+
+(let  ((h (js "document.getElementById('path')")))
+  (set h "innerHTML" path)
+)
+
+(let  ((i (js "document.getElementById('instruction')")))
+  (set i "innerHTML" "You may now press the button to animate!")
+)
+
+</script>
+
+<script type="text/javascript">
+$( "#animateBtn" ).click(function() {
+  var path = document.getElementById("path").innerHTML;
+  var res = path.split(",");
+  var listOfPoints = [];
+  for (var i = 0; i < res.length-1; i+=2) {
+      var tempArr = [res[i],res[i+1]]
+      listOfPoints.push(tempArr)
+    }
+  for (var i = 0; i < listOfPoints.length; i++) {
+    console.log(listOfPoints[i]);
+  }
+});
+</script>
 
 </html>
