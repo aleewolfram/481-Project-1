@@ -10,6 +10,7 @@
     <script src="p5.js"></script>
     <script src="cs-sketch.js"></script>
     <script type="text/javascript" src="Jathp.js"></script>
+    <script src="draw-stuff.js"></script>
 
 
   </head>
@@ -26,9 +27,6 @@
       <div style="display: none" id=path></div>
     </div>
     <br><br>
-
-    <img src="background.jpg" class="center">
-
 </div>
 
 
@@ -413,7 +411,6 @@
 
 (logr path)
 
-(def ncount 0)
 (setq topcoord)
 
 (let  ((h (js "document.getElementById('path')")))
@@ -431,6 +428,12 @@
 (defun jp-circle (rx ry rdia) ;; x,y = center pos, P5.
 (js (concat "circle(" rx "," ry "," rdia ")" )))
 
+(defun jp-cell-rbg-sum ( rx ry ) ;; rx,ry is upper-left cell corner pos.
+  (let* ((px (+ 2 rx)) ;; Offset into cell.
+         (py (+ 2 ry))
+         (rbg-sum (js (concat "csjs_get_pixel_color_sum(" px "," py ")"))))
+                      ;;dbg (logr (concat "rbg-sum = " (stgr rbg-sum)))
+    rbg-sum))
 
 (defun jp-draw-bot ( )
 (let* ((sz (js "g_canvas.cell_size"))
@@ -442,7 +445,7 @@
        (pix (jp-cell-rbg-sum xx yy)))
   (if (= 0 pix) ;; Q: paint a color, or repaint it black.
       (let ( )
-        (js "stroke( 'yellow' )" ) ;; Named color.
+        (js "stroke( 'white' )" ) ;; Named color.
         (js "fill( '#' + g_bot.color )")) ;; "#RGB" color
     (js "stroke( 'black' )" )
     (js "fill( 'black' )"))
@@ -451,13 +454,12 @@
     (jp-circle xx yy zz) )))
 
 (defun jp-move-bot ()
-  (let* (
-         (topcoord (nth 15 path))
-         (def ncount(+ 1 ncount))
+  (let* ((gbot (js "g_bot"))
+         (ncount (js "g_bot.cnt"))
+         (topcoord (nth ncount path))
          (x (nth 0 topcoord))
          (y (nth 1 topcoord))
          (ab (logr (stgr (list "x y = " x y))))
-         (gbot (js "g_bot"))
          (boxwid (js "g_box.wid"))
          (newx (% (+ x boxwid) boxwid))
          (boxhgt (js "g_box.hgt"))
@@ -469,8 +471,9 @@
     (js (concat "g_bot.y = " (stgr newy)))
     (js (concat "g_bot.color = " (stgr newcolor)))))
 
+
 ;; Build & Setup l4j.draw_fn(): a JP lisp fn callable from JS.
-;; NB, a JS global var isn't same as a JP global var.
+;; NB, a JS global var isnt same as a JP global var.
 ;;  so we/JP must get hands on the JS var via a js() call.
 ;;  and we
 (let* ((l4j (js "g_l4job"))
@@ -484,21 +487,15 @@
   (logr (stgr (list "g_l4job.draw_fn() = " (js "g_l4job.draw_fn")))))
 (logr "End html lisp draw fn =====")
 
-;;'
+;;
 (let* ((l4j (js "g_l4job"))
-       (fnx (lambda ( )
+       (fnx (lambda ()
               (let ()
                 (jp-move-bot)
                 (jp-draw-bot)
               ))))
   (set l4j "draw_fn" (export fnx)))
 
-(defun jp-cell-rbg-sum ( rx ry ) ;; rx,ry is upper-left cell corner pos.
-  (let* ((px (+ 2 rx)) ;; Offset into cell.
-         (py (+ 2 ry))
-         (rbg-sum (js (concat "csjs_get_pixel_color_sum(" px "," py ")"))))
-                      ;;dbg (logr (concat "rbg-sum = " (stgr rbg-sum)))
-    rbg-sum))
 
 </script>
 
