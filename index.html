@@ -8,6 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
     <script src="p5.js"></script>
+    <script src="cs-sketch.js"></script>
     <script type="text/javascript" src="Jathp.js"></script>
 
 
@@ -21,12 +22,12 @@
         Please wait to animate...
       </div>
       <div class="row justify-content-md-center">
-        <button id="animateBtn" type="button" class="btn btn-danger btn-sm">Begin Animation</button>
+        <button id="animateBtn" type="button" class="btn btn-danger btn-sm">Begin/Stop Animation</button>
       <div style="display: none" id=path></div>
     </div>
     <br><br>
 
-    <img src="background2.jpg" class="center">
+    <img src="background.jpg" class="center">
 
 </div>
 
@@ -412,6 +413,9 @@
 
 (logr path)
 
+(def ncount 0)
+(setq topcoord)
+
 (let  ((h (js "document.getElementById('path')")))
   (set h "innerHTML" path)
 )
@@ -419,6 +423,82 @@
 (let  ((i (js "document.getElementById('instruction')")))
   (set i "innerHTML" "You may now press the button to animate!")
 )
+
+(defun jp-rect (rx ry rwid rhgt)
+(js (concat "rect(" rx "," ry "," rwid "," rhgt ")" )))
+
+
+(defun jp-circle (rx ry rdia) ;; x,y = center pos, P5.
+(js (concat "circle(" rx "," ry "," rdia ")" )))
+
+
+(defun jp-draw-bot ( )
+(let* ((sz (js "g_canvas.cell_size"))
+       (zz (- sz 2)) ;; -2 to size inside cell grid lines.
+       ;; bot.x * sz to cvt from cell pos to pixel pos
+       ;; +1 to paint inside the grid lines
+       (xx (+ 1 (* sz (js "g_bot.x"))))
+       (yy (+ 1 (* sz (js "g_bot.y"))))
+       (pix (jp-cell-rbg-sum xx yy)))
+  (if (= 0 pix) ;; Q: paint a color, or repaint it black.
+      (let ( )
+        (js "stroke( 'yellow' )" ) ;; Named color.
+        (js "fill( '#' + g_bot.color )")) ;; "#RGB" color
+    (js "stroke( 'black' )" )
+    (js "fill( 'black' )"))
+  (if (= 0 (js "g_bot.odd"))
+      (jp-rect xx yy zz zz)
+    (jp-circle xx yy zz) )))
+
+(defun jp-move-bot ()
+  (let* (
+         (topcoord (nth 15 path))
+         (def ncount(+ 1 ncount))
+         (x (nth 0 topcoord))
+         (y (nth 1 topcoord))
+         (ab (logr (stgr (list "x y = " x y))))
+         (gbot (js "g_bot"))
+         (boxwid (js "g_box.wid"))
+         (newx (% (+ x boxwid) boxwid))
+         (boxhgt (js "g_box.hgt"))
+         (newy (% (+ y boxhgt) boxhgt))
+         (ac (logr (stgr (list "newx newy = " newx newy))))
+         (bcolor (js "g_bot.color"))
+         (newcolor (+ 100 (% (+ 1 bcolor) 156))))
+    (js (concat "g_bot.x = " (stgr newx)))
+    (js (concat "g_bot.y = " (stgr newy)))
+    (js (concat "g_bot.color = " (stgr newcolor)))))
+
+;; Build & Setup l4j.draw_fn(): a JP lisp fn callable from JS.
+;; NB, a JS global var isn't same as a JP global var.
+;;  so we/JP must get hands on the JS var via a js() call.
+;;  and we
+(let* ((l4j (js "g_l4job"))
+       (fnx (lambda ( )
+              (let ()
+                (jp-move-bot)
+                (jp-draw-bot)
+                ))))
+  (set l4j "draw_fn" (export fnx)) ;; Here, we install the JP fn on a JS obj.
+  (logr (stgr (list "g_l4job.draw_fn is set")))
+  (logr (stgr (list "g_l4job.draw_fn() = " (js "g_l4job.draw_fn")))))
+(logr "End html lisp draw fn =====")
+
+;;'
+(let* ((l4j (js "g_l4job"))
+       (fnx (lambda ( )
+              (let ()
+                (jp-move-bot)
+                (jp-draw-bot)
+              ))))
+  (set l4j "draw_fn" (export fnx)))
+
+(defun jp-cell-rbg-sum ( rx ry ) ;; rx,ry is upper-left cell corner pos.
+  (let* ((px (+ 2 rx)) ;; Offset into cell.
+         (py (+ 2 ry))
+         (rbg-sum (js (concat "csjs_get_pixel_color_sum(" px "," py ")"))))
+                      ;;dbg (logr (concat "rbg-sum = " (stgr rbg-sum)))
+    rbg-sum))
 
 </script>
 
@@ -434,6 +514,8 @@ $( "#animateBtn" ).click(function() {
   for (var i = 0; i < listOfPoints.length; i++) {
     console.log(listOfPoints[i]);
   }
+  g_stop = !g_stop
+  if (g_stop) { noLoop(); } else {loop();}
 });
 </script>
 
